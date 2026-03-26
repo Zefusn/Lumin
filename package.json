@@ -1,0 +1,43 @@
+{
+  "name": "lumin-wallpaper",
+  "version": "0.1.0",
+  "author": "Therad0",
+  "description": "Windows desktop wallpaper app with Bing daily refresh and frosted glass styling.",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "electron-builder --win nsis"
+  },
+  "dependencies": {
+    "jimp": "latest",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "latest"
+  },
+  "build": {
+    "appId": "com.therad0.lumin",
+    "productName": "Lumin",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "nsis"
+      ]
+    }
+  }
+}

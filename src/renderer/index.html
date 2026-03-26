@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumin</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <div class="ambient ambient-a"></div>
+      <div class="ambient ambient-b"></div>
+
+      <main class="app">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Windows 每日壁纸</p>
+            <h1>Lumin</h1>
+            <p class="subtitle">
+              每天从 Bing 获取壁纸，自动生成 iOS 风格毛玻璃版本，并一键同步到 Windows 桌面与锁屏。
+            </p>
+
+            <div class="actions">
+              <button id="refreshButton" class="primary">获取今日壁纸</button>
+              <button id="applyButton" class="secondary">一键设置桌面与锁屏</button>
+            </div>
+
+            <div class="toggle-card">
+              <label class="toggle-row">
+                <span>
+                  <strong>开机自启</strong>
+                  <small>启动 Windows 时自动打开 Lumin，并刷新当天桌面壁纸。</small>
+                </span>
+                <input id="autoStartToggle" type="checkbox" />
+              </label>
+            </div>
+          </div>
+
+          <div class="preview-card">
+            <div class="preview-frame">
+              <img id="previewImage" alt="壁纸预览" />
+              <div class="preview-overlay">
+                <p id="wallpaperDate" class="preview-date">等待获取今日壁纸</p>
+                <h2 id="wallpaperTitle">Bing 每日壁纸</h2>
+                <p id="wallpaperCopyright" class="preview-meta">生成后会显示版权信息与更新时间</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="status-panel">
+          <article class="status-card">
+            <p class="panel-label">当前状态</p>
+            <p id="statusMessage" class="status-message">应用初始化中...</p>
+          </article>
+
+          <article class="status-card compact">
+            <p class="panel-label">系统环境</p>
+            <p id="windowsLabel" class="status-message">正在读取 Windows 版本</p>
+          </article>
+
+          <article class="status-card compact">
+            <p class="panel-label">便捷操作</p>
+            <div class="link-actions">
+              <button id="openCacheButton" class="ghost">打开缓存目录</button>
+              <button id="openSourceButton" class="ghost">查看原图来源</button>
+            </div>
+          </article>
+        </section>
+
+        <section class="notes">
+          <article class="note">
+            <h3>毛玻璃处理</h3>
+            <p>会对 Bing 原图做高斯模糊、轻微提亮和柔和白色蒙层，形成更接近 iOS 的 Frosted Glass 质感。</p>
+          </article>
+          <article class="note">
+            <h3>每日刷新</h3>
+            <p>应用启动后会检查今天是否已有新壁纸，没有就自动拉取并应用到桌面。</p>
+          </article>
+          <article class="note">
+            <h3>锁屏说明</h3>
+            <p>锁屏壁纸设置可能会触发管理员权限提示，并受不同 Windows 版本策略限制。</p>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+
