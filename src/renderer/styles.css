@@ -271,6 +271,9 @@ button:disabled {
 .meta-card {
   border-radius: 22px;
   padding: 18px 20px;
+  min-height: 138px;
+  display: flex;
+  flex-direction: column;
 }
 
 .meta-card .status-message {
@@ -289,6 +292,10 @@ button:disabled {
   margin: 10px 0 0;
   line-height: 1.7;
   font-size: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .status-success {

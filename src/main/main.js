@@ -35,6 +35,14 @@ function localDayKey(date = new Date()) {
   return `${year}${month}${day}`;
 }
 
+function compactMessage(message) {
+  if (!message) {
+    return "操作完成。";
+  }
+
+  return message.replace(/\s+/g, " ").trim();
+}
+
 function buildViewModel(message = null, tone = "success") {
   const state = store.getState();
   const wallpaper = state.wallpaper;
@@ -70,7 +78,7 @@ async function rememberStatus(message, tone = "success") {
 
 async function refreshWallpaper(options = {}) {
   if (busy) {
-    return buildViewModel("正在处理中，请稍候。", "warning");
+    return buildViewModel("正在处理中", "warning");
   }
 
   busy = true;
@@ -111,8 +119,8 @@ async function refreshWallpaper(options = {}) {
     }
 
     const summary = options.applyDesktopAfterRefresh
-      ? "已更新今日 Bing 壁纸，并自动应用到桌面。"
-      : "已按 FirstPage 同款图源获取壁纸，并重新生成毛玻璃版本。";
+      ? "今日壁纸已自动应用"
+      : "今日壁纸已更新";
 
     await rememberStatus(summary, "success");
     return buildViewModel(summary, "success");
@@ -127,12 +135,12 @@ async function refreshWallpaper(options = {}) {
 
 async function applyCurrentWallpaper() {
   if (busy) {
-    return buildViewModel("正在处理中，请稍候。", "warning");
+    return buildViewModel("正在处理中", "warning");
   }
 
   const wallpaper = store.getState().wallpaper;
   if (!wallpaper?.frostedPath) {
-    return buildViewModel("请先获取一张 Bing 壁纸。", "warning");
+    return buildViewModel("请先获取壁纸", "warning");
   }
 
   busy = true;
@@ -152,11 +160,12 @@ async function applyCurrentWallpaper() {
     });
 
     const summary = lockScreenResult.applied
-      ? "桌面与锁屏壁纸都已设置完成。"
-      : `桌面壁纸已设置完成。${lockScreenResult.reason}`;
+      ? "桌面与锁屏已应用"
+      : `桌面已应用，${lockScreenResult.reason}`;
 
-    await rememberStatus(summary, lockScreenResult.applied ? "success" : "warning");
-    return buildViewModel(summary, lockScreenResult.applied ? "success" : "warning");
+    const compact = compactMessage(summary);
+    await rememberStatus(compact, lockScreenResult.applied ? "success" : "warning");
+    return buildViewModel(compact, lockScreenResult.applied ? "success" : "warning");
   } catch (error) {
     const message = `应用壁纸失败：${error.message}`;
     await rememberStatus(message, "error");
@@ -174,8 +183,9 @@ async function setAutoLaunch(enabled) {
 
   await store.patch({ autoLaunchEnabled: enabled });
   const message = enabled ? "已开启开机自启。" : "已关闭开机自启。";
-  await rememberStatus(message, "success");
-  return buildViewModel(message, "success");
+  const compact = enabled ? "已开启开机自启" : "已关闭开机自启";
+  await rememberStatus(compact, "success");
+  return buildViewModel(compact, "success");
 }
 
 async function syncAutoLaunchState() {
@@ -212,7 +222,7 @@ async function maybeRefreshDailyWallpaper() {
         }
       });
 
-      await rememberStatus("已按新版 FirstPage 风格算法重新生成毛玻璃壁纸。", "success");
+      await rememberStatus("已重新生成毛玻璃壁纸", "success");
     } catch (error) {
       await rememberStatus(`缓存迁移失败：${error.message}`, "warning");
     }

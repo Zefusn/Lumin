@@ -56,7 +56,7 @@ async function setLockScreenWallpaperSilently(imagePath) {
   if (!elevated) {
     return {
       applied: false,
-      reason: "当前不是管理员模式，已跳过锁屏设置以避免系统弹窗。"
+      reason: "锁屏已跳过"
     };
   }
 
@@ -82,7 +82,7 @@ async function setLockScreenWallpaperSilently(imagePath) {
   } catch {
     return {
       applied: false,
-      reason: "当前 Windows 版本或系统策略不允许静默设置锁屏壁纸。"
+      reason: "锁屏设置受系统限制"
     };
   }
 }
