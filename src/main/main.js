@@ -12,7 +12,7 @@ const {
 const {
   getWindowsProductName,
   setDesktopWallpaper,
-  setLockScreenWallpaper
+  setLockScreenWallpaperSilently
 } = require("./services/windowsService");
 
 let mainWindow;
@@ -45,13 +45,13 @@ function buildViewModel(message = null, tone = "success") {
     message:
       message ||
       state.lastStatus?.message ||
-      "Lumin 已就绪，可以获取 Bing 每日壁纸并生成更通透的毛玻璃版本。",
+      "Lumin 已就绪，可以按 FirstPage 同款图源获取 Bing 壁纸并生成毛玻璃版本。",
     tone: message ? tone : state.lastStatus?.tone || "success",
     windowsProductName,
     wallpaper: wallpaper
       ? {
           ...wallpaper,
-          originalUrl: asFileUrl(wallpaper.originalPath),
+          originalUrl: `${asFileUrl(wallpaper.originalPath)}?t=${Date.now()}`,
           frostedUrl: `${asFileUrl(wallpaper.frostedPath)}?t=${Date.now()}`
         }
       : null
@@ -89,6 +89,7 @@ async function refreshWallpaper(options = {}) {
       endDate: latest.endDate,
       title: latest.title,
       copyright: latest.copyright,
+      copyrightLink: latest.copyrightLink,
       sourceUrl: latest.sourceUrl,
       originalPath: latest.originalPath,
       frostedPath,
@@ -111,7 +112,7 @@ async function refreshWallpaper(options = {}) {
 
     const summary = options.applyDesktopAfterRefresh
       ? "已更新今日 Bing 壁纸，并自动应用到桌面。"
-      : "已获取最新 Bing 壁纸，并生成更通透的毛玻璃版本。";
+      : "已按 FirstPage 同款图源获取壁纸，并重新生成毛玻璃版本。";
 
     await rememberStatus(summary, "success");
     return buildViewModel(summary, "success");
@@ -140,31 +141,22 @@ async function applyCurrentWallpaper() {
     await fs.access(wallpaper.frostedPath);
     await setDesktopWallpaper(wallpaper.frostedPath);
 
-    let lockScreenApplied = false;
-    let lockScreenNote = "锁屏壁纸也已设置完成。";
-
-    try {
-      await setLockScreenWallpaper(wallpaper.frostedPath);
-      lockScreenApplied = true;
-    } catch {
-      lockScreenNote =
-        "桌面壁纸已应用，锁屏壁纸需要管理员权限或受当前 Windows 版本限制。";
-    }
+    const lockScreenResult = await setLockScreenWallpaperSilently(wallpaper.frostedPath);
 
     await store.patch({
       wallpaper: {
         ...wallpaper,
         desktopAppliedAt: nowIso(),
-        lockScreenAppliedAt: lockScreenApplied ? nowIso() : wallpaper.lockScreenAppliedAt
+        lockScreenAppliedAt: lockScreenResult.applied ? nowIso() : wallpaper.lockScreenAppliedAt
       }
     });
 
-    const summary = lockScreenApplied
+    const summary = lockScreenResult.applied
       ? "桌面与锁屏壁纸都已设置完成。"
-      : lockScreenNote;
+      : `桌面壁纸已设置完成。${lockScreenResult.reason}`;
 
-    await rememberStatus(summary, lockScreenApplied ? "success" : "warning");
-    return buildViewModel(summary, lockScreenApplied ? "success" : "warning");
+    await rememberStatus(summary, lockScreenResult.applied ? "success" : "warning");
+    return buildViewModel(summary, lockScreenResult.applied ? "success" : "warning");
   } catch (error) {
     const message = `应用壁纸失败：${error.message}`;
     await rememberStatus(message, "error");
@@ -181,7 +173,6 @@ async function setAutoLaunch(enabled) {
   });
 
   await store.patch({ autoLaunchEnabled: enabled });
-
   const message = enabled ? "已开启开机自启。" : "已关闭开机自启。";
   await rememberStatus(message, "success");
   return buildViewModel(message, "success");
@@ -221,7 +212,7 @@ async function maybeRefreshDailyWallpaper() {
         }
       });
 
-      await rememberStatus("已按新版算法重新生成毛玻璃壁纸。", "success");
+      await rememberStatus("已按新版 FirstPage 风格算法重新生成毛玻璃壁纸。", "success");
     } catch (error) {
       await rememberStatus(`缓存迁移失败：${error.message}`, "warning");
     }
@@ -231,10 +222,10 @@ async function maybeRefreshDailyWallpaper() {
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1240,
-    height: 820,
-    minWidth: 1024,
-    minHeight: 720,
-    backgroundColor: "#f5f0e8",
+    height: 760,
+    minWidth: 1120,
+    minHeight: 700,
+    backgroundColor: "#eef2f6",
     title: "Lumin",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -243,6 +234,7 @@ function createWindow() {
     }
   });
 
+  mainWindow.setMenuBarVisibility(false);
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
 }
 

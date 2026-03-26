@@ -28,7 +28,7 @@ function formatDate(dateText) {
     return "等待获取今日壁纸";
   }
 
-  return `${dateText.slice(0, 4)}-${dateText.slice(4, 6)}-${dateText.slice(6, 8)}`;
+  return `Bing ${dateText.slice(0, 4)}-${dateText.slice(4, 6)}-${dateText.slice(6, 8)}`;
 }
 
 function renderStatus(message, tone) {
@@ -45,15 +45,15 @@ function render(viewModel) {
     elements.previewImage.removeAttribute("src");
     elements.wallpaperDate.textContent = "等待获取今日壁纸";
     elements.wallpaperTitle.textContent = "Bing 每日壁纸";
-    elements.wallpaperCopyright.textContent = "生成后会显示版权信息与更新时间";
+    elements.wallpaperCopyright.textContent = "右侧始终展示原图预览";
     return;
   }
 
-  elements.previewImage.src = viewModel.wallpaper.frostedUrl;
-  elements.wallpaperDate.textContent = `Bing ${formatDate(viewModel.wallpaper.startDate)}`;
+  elements.previewImage.src = viewModel.wallpaper.originalUrl;
+  elements.wallpaperDate.textContent = formatDate(viewModel.wallpaper.startDate);
   elements.wallpaperTitle.textContent = viewModel.wallpaper.title || "Bing 每日壁纸";
   elements.wallpaperCopyright.textContent =
-    viewModel.wallpaper.copyright || "已生成毛玻璃版本";
+    viewModel.wallpaper.copyright || "右侧始终展示原图预览";
 }
 
 async function refreshState() {

@@ -1,25 +1,30 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
-const BING_API = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN";
+const FIRST_PAGE_BING_API = "https://bing.biturl.top/?resolution=1920&format=json";
+
+function inferTitle(copyrightText) {
+  if (!copyrightText) {
+    return "Bing 每日壁纸";
+  }
+
+  const [title] = copyrightText.split("，");
+  return title?.trim() || "Bing 每日壁纸";
+}
 
 async function fetchLatestWallpaper(cacheDir) {
-  const response = await fetch(BING_API);
+  const response = await fetch(FIRST_PAGE_BING_API);
   if (!response.ok) {
-    throw new Error(`Bing 接口请求失败: ${response.status}`);
+    throw new Error(`FirstPage Bing 接口请求失败: ${response.status}`);
   }
 
   const payload = await response.json();
-  const image = payload.images?.[0];
-
-  if (!image?.url) {
-    throw new Error("Bing 返回的数据中没有可用壁纸。");
+  if (!payload?.url || !payload?.start_date) {
+    throw new Error("FirstPage Bing 接口没有返回可用壁纸。");
   }
 
-  const downloadUrl = new URL(image.url, "https://www.bing.com").toString();
-  const originalPath = path.join(cacheDir, `${image.startdate}-original.jpg`);
-
-  const imageResponse = await fetch(downloadUrl);
+  const originalPath = path.join(cacheDir, `${payload.start_date}-original.jpg`);
+  const imageResponse = await fetch(payload.url);
   if (!imageResponse.ok) {
     throw new Error(`下载 Bing 壁纸失败: ${imageResponse.status}`);
   }
@@ -28,12 +33,13 @@ async function fetchLatestWallpaper(cacheDir) {
   await fs.writeFile(originalPath, buffer);
 
   return {
-    bingId: image.hsh || image.startdate,
-    sourceUrl: downloadUrl,
-    startDate: image.startdate,
-    endDate: image.enddate,
-    title: image.title || "Bing 每日壁纸",
-    copyright: image.copyright || "",
+    bingId: payload.start_date,
+    sourceUrl: payload.url,
+    startDate: payload.start_date,
+    endDate: payload.end_date,
+    title: inferTitle(payload.copyright),
+    copyright: payload.copyright || "",
+    copyrightLink: payload.copyright_link || "",
     originalPath
   };
 }
@@ -41,4 +47,3 @@ async function fetchLatestWallpaper(cacheDir) {
 module.exports = {
   fetchLatestWallpaper
 };
-

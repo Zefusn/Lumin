@@ -7,33 +7,29 @@ function escapePowerShell(text) {
   return text.replace(/'/g, "''");
 }
 
-async function runPowerShell(script, elevated = false) {
-  if (!elevated) {
-    await execFileAsync("powershell.exe", [
-      "-NoProfile",
-      "-ExecutionPolicy",
-      "Bypass",
-      "-Command",
-      script
-    ]);
-    return;
-  }
-
-  const encoded = Buffer.from(script, "utf16le").toString("base64");
-  const elevationWrapper = [
-    "$ErrorActionPreference = 'Stop'",
-    `$proc = Start-Process powershell.exe -Verb RunAs -Wait -PassThru -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-EncodedCommand','${encoded}'`,
-    "if ($null -eq $proc) { throw '未能启动管理员权限进程。' }",
-    "exit $proc.ExitCode"
-  ].join("; ");
-
+async function runPowerShell(script) {
   await execFileAsync("powershell.exe", [
     "-NoProfile",
     "-ExecutionPolicy",
     "Bypass",
     "-Command",
-    elevationWrapper
+    script
   ]);
+}
+
+async function isProcessElevated() {
+  try {
+    const { stdout } = await execFileAsync("powershell.exe", [
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-Command",
+      "([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)"
+    ]);
+    return stdout.trim().toLowerCase() === "true";
+  } catch {
+    return false;
+  }
 }
 
 async function setDesktopWallpaper(imagePath) {
@@ -52,10 +48,18 @@ async function setDesktopWallpaper(imagePath) {
     "rundll32.exe user32.dll, UpdatePerUserSystemParameters"
   ].join("\n");
 
-  await runPowerShell(script, false);
+  await runPowerShell(script);
 }
 
-async function setLockScreenWallpaper(imagePath) {
+async function setLockScreenWallpaperSilently(imagePath) {
+  const elevated = await isProcessElevated();
+  if (!elevated) {
+    return {
+      applied: false,
+      reason: "当前不是管理员模式，已跳过锁屏设置以避免系统弹窗。"
+    };
+  }
+
   const safePath = escapePowerShell(imagePath);
   const script = [
     "$ErrorActionPreference = 'Stop'",
@@ -69,7 +73,18 @@ async function setLockScreenWallpaper(imagePath) {
     `Set-ItemProperty -Path $policyPath -Name LockScreenImage -Value '${safePath}'`
   ].join("\n");
 
-  await runPowerShell(script, true);
+  try {
+    await runPowerShell(script);
+    return {
+      applied: true,
+      reason: ""
+    };
+  } catch {
+    return {
+      applied: false,
+      reason: "当前 Windows 版本或系统策略不允许静默设置锁屏壁纸。"
+    };
+  }
 }
 
 async function getWindowsProductName() {
@@ -87,7 +102,7 @@ async function getWindowsProductName() {
 
 module.exports = {
   getWindowsProductName,
+  isProcessElevated,
   setDesktopWallpaper,
-  setLockScreenWallpaper
+  setLockScreenWallpaperSilently
 };
-
