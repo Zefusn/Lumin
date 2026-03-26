@@ -45,7 +45,7 @@ function buildViewModel(message = null, tone = "success") {
     message:
       message ||
       state.lastStatus?.message ||
-      "Lumin 已就绪，可以拉取 Bing 壁纸并一键应用到 Windows。",
+      "Lumin 已就绪，可以获取 Bing 每日壁纸并生成更通透的毛玻璃版本。",
     tone: message ? tone : state.lastStatus?.tone || "success",
     windowsProductName,
     wallpaper: wallpaper
@@ -101,16 +101,17 @@ async function refreshWallpaper(options = {}) {
 
     if (options.applyDesktopAfterRefresh) {
       await setDesktopWallpaper(frostedPath);
-      const updatedWallpaper = {
-        ...store.getState().wallpaper,
-        desktopAppliedAt: nowIso()
-      };
-      await store.patch({ wallpaper: updatedWallpaper });
+      await store.patch({
+        wallpaper: {
+          ...store.getState().wallpaper,
+          desktopAppliedAt: nowIso()
+        }
+      });
     }
 
     const summary = options.applyDesktopAfterRefresh
       ? "已更新今日 Bing 壁纸，并自动应用到桌面。"
-      : "已获取最新 Bing 壁纸，并生成毛玻璃版本。";
+      : "已获取最新 Bing 壁纸，并生成更通透的毛玻璃版本。";
 
     await rememberStatus(summary, "success");
     return buildViewModel(summary, "success");
@@ -140,23 +141,23 @@ async function applyCurrentWallpaper() {
     await setDesktopWallpaper(wallpaper.frostedPath);
 
     let lockScreenApplied = false;
-    let lockScreenNote = "锁屏壁纸应用成功。";
+    let lockScreenNote = "锁屏壁纸也已设置完成。";
 
     try {
       await setLockScreenWallpaper(wallpaper.frostedPath);
       lockScreenApplied = true;
-    } catch (error) {
+    } catch {
       lockScreenNote =
         "桌面壁纸已应用，锁屏壁纸需要管理员权限或受当前 Windows 版本限制。";
     }
 
-    const nextWallpaper = {
-      ...wallpaper,
-      desktopAppliedAt: nowIso(),
-      lockScreenAppliedAt: lockScreenApplied ? nowIso() : wallpaper.lockScreenAppliedAt
-    };
-
-    await store.patch({ wallpaper: nextWallpaper });
+    await store.patch({
+      wallpaper: {
+        ...wallpaper,
+        desktopAppliedAt: nowIso(),
+        lockScreenAppliedAt: lockScreenApplied ? nowIso() : wallpaper.lockScreenAppliedAt
+      }
+    });
 
     const summary = lockScreenApplied
       ? "桌面与锁屏壁纸都已设置完成。"
@@ -178,7 +179,9 @@ async function setAutoLaunch(enabled) {
     openAtLogin: enabled,
     openAsHidden: false
   });
+
   await store.patch({ autoLaunchEnabled: enabled });
+
   const message = enabled ? "已开启开机自启。" : "已关闭开机自启。";
   await rememberStatus(message, "success");
   return buildViewModel(message, "success");
@@ -218,20 +221,20 @@ async function maybeRefreshDailyWallpaper() {
         }
       });
 
-      await rememberStatus("已修复旧版缓存壁纸，并重新生成毛玻璃预览。", "success");
+      await rememberStatus("已按新版算法重新生成毛玻璃壁纸。", "success");
     } catch (error) {
-      await rememberStatus(`旧版缓存迁移失败：${error.message}`, "warning");
+      await rememberStatus(`缓存迁移失败：${error.message}`, "warning");
     }
   }
 }
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 780,
-    minWidth: 980,
-    minHeight: 700,
-    backgroundColor: "#0a1222",
+    width: 1240,
+    height: 820,
+    minWidth: 1024,
+    minHeight: 720,
+    backgroundColor: "#f5f0e8",
     title: "Lumin",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),

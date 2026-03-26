@@ -10,7 +10,6 @@
     "build": "electron-builder --win nsis"
   },
   "dependencies": {
-    "jimp": "latest",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
