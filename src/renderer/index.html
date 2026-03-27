@@ -14,12 +14,14 @@
             <p class="eyebrow">Windows Daily Wallpaper</p>
             <h1>Lumin</h1>
             <p class="subtitle">
-              使用 FirstPage 同款 Bing 图源获取每日壁纸，生成玻璃感毛玻璃版本，并一键同步到 Windows。
+              使用 FirstPage 同款 Bing 图源获取每日壁纸，生成玻璃感毛玻璃版本，并一键同步到
+              Windows。
             </p>
 
             <div class="actions">
               <button id="refreshButton" class="primary">获取今日壁纸</button>
               <button id="applyButton" class="secondary">应用到桌面与锁屏</button>
+              <button id="settingsButton" class="ghost">效果设置</button>
             </div>
 
             <label class="toggle-card">
@@ -53,15 +55,103 @@
           <div class="preview-card">
             <div class="preview-frame">
               <img id="previewImage" alt="壁纸原图预览" />
+
+              <div class="preview-nav">
+                <button id="prevWallpaperButton" class="nav-button" type="button" aria-label="上一张">
+                  &#8249;
+                </button>
+                <span id="previewCounter" class="preview-counter">1 / 1</span>
+                <button id="nextWallpaperButton" class="nav-button" type="button" aria-label="下一张">
+                  &#8250;
+                </button>
+              </div>
+
               <div class="preview-overlay">
                 <p id="wallpaperDate" class="preview-date">等待获取今日壁纸</p>
                 <h2 id="wallpaperTitle">Bing 每日壁纸</h2>
-                <p id="wallpaperCopyright" class="preview-meta">右侧始终展示原图预览</p>
+                <p id="wallpaperCopyright" class="preview-meta">右侧展示原图预览</p>
               </div>
             </div>
           </div>
         </section>
       </main>
+    </div>
+
+    <div id="settingsModal" class="settings-modal is-hidden">
+      <div class="settings-backdrop" data-close-settings="true"></div>
+
+      <section class="settings-panel">
+        <header class="settings-header">
+          <div>
+            <p class="settings-eyebrow">Glass Settings</p>
+            <h2>效果设置</h2>
+          </div>
+          <button id="closeSettingsButton" class="icon-button" type="button" aria-label="关闭设置">
+            &times;
+          </button>
+        </header>
+
+        <p class="settings-intro">
+          调滑杆时会即时生成毛玻璃预览，保存后才会正式重生成所有缓存壁纸。
+        </p>
+
+        <div class="settings-layout">
+          <section class="settings-controls">
+            <div class="settings-group">
+              <label class="setting-row" for="transparencyRange">
+                <span class="setting-copy">
+                  <strong>通透程度</strong>
+                  <small>越高越保留原图结构，玻璃层更清透。</small>
+                </span>
+                <span id="transparencyValue" class="setting-value">72</span>
+              </label>
+              <input
+                id="transparencyRange"
+                class="setting-range"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+              />
+            </div>
+
+            <div class="settings-group">
+              <label class="setting-row" for="tintRange">
+                <span class="setting-copy">
+                  <strong>发白 / 发黑</strong>
+                  <small>向右更奶白，向左更暗色，中间更中性。</small>
+                </span>
+                <span id="tintValue" class="setting-value">+10</span>
+              </label>
+              <input id="tintRange" class="setting-range" type="range" min="-100" max="100" step="1" />
+            </div>
+
+            <div class="settings-group">
+              <label class="setting-row" for="blurRange">
+                <span class="setting-copy">
+                  <strong>模糊程度</strong>
+                  <small>越高越柔和，越低越清晰。</small>
+                </span>
+                <span id="blurValue" class="setting-value">28</span>
+              </label>
+              <input id="blurRange" class="setting-range" type="range" min="8" max="42" step="1" />
+            </div>
+          </section>
+
+          <aside class="settings-preview-card">
+            <p class="panel-label">实时预览</p>
+            <div class="settings-preview-frame">
+              <img id="settingsPreviewImage" alt="毛玻璃效果实时预览" />
+            </div>
+            <p id="settingsPreviewCaption" class="settings-preview-caption">正在使用当前壁纸生成预览。</p>
+          </aside>
+        </div>
+
+        <footer class="settings-actions">
+          <button id="resetSettingsButton" class="ghost" type="button">恢复默认</button>
+          <button id="saveSettingsButton" class="primary" type="button">保存并重生成</button>
+        </footer>
+      </section>
     </div>
 
     <script src="./app.js"></script>

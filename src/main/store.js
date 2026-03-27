@@ -1,10 +1,19 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
+const DEFAULT_GLASS_SETTINGS = {
+  transparency: 72,
+  tint: 10,
+  blur: 28
+};
+
 const DEFAULT_STATE = {
   autoLaunchEnabled: false,
   lastStatus: null,
-  wallpaper: null
+  wallpaper: null,
+  wallpapers: [],
+  selectedWallpaperId: null,
+  glassSettings: DEFAULT_GLASS_SETTINGS
 };
 
 async function ensureDir(dirPath) {
@@ -40,10 +49,17 @@ class AppStore {
   async init() {
     await ensureDir(this.appDataDir);
     await ensureDir(this.cacheDir);
+
+    const rawState = await readJson(this.statePath, DEFAULT_STATE);
     this.state = {
       ...structuredClone(DEFAULT_STATE),
-      ...(await readJson(this.statePath, DEFAULT_STATE))
+      ...rawState,
+      glassSettings: {
+        ...DEFAULT_GLASS_SETTINGS,
+        ...(rawState.glassSettings || {})
+      }
     };
+
     return this;
   }
 
@@ -51,15 +67,14 @@ class AppStore {
     return this.state;
   }
 
-  async setState(nextState) {
-    this.state = nextState;
-    await writeJson(this.statePath, this.state);
-  }
-
   async patch(patch) {
     this.state = {
       ...this.state,
-      ...patch
+      ...patch,
+      glassSettings: {
+        ...this.state.glassSettings,
+        ...(patch.glassSettings || {})
+      }
     };
     await writeJson(this.statePath, this.state);
   }
@@ -67,6 +82,6 @@ class AppStore {
 
 module.exports = {
   AppStore,
+  DEFAULT_GLASS_SETTINGS,
   ensureDir
 };
-

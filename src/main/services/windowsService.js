@@ -26,6 +26,7 @@ async function isProcessElevated() {
       "-Command",
       "([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)"
     ]);
+
     return stdout.trim().toLowerCase() === "true";
   } catch {
     return false;
@@ -44,7 +45,7 @@ async function setDesktopWallpaper(imagePath) {
     "}",
     "'@",
     `$result = [NativeWallpaper]::SystemParametersInfo(20, 0, '${safePath}', 3)`,
-    "if (-not $result) { throw '桌面壁纸设置失败。' }",
+    "if (-not $result) { throw 'Desktop wallpaper apply failed.' }",
     "rundll32.exe user32.dll, UpdatePerUserSystemParameters"
   ].join("\n");
 
@@ -56,7 +57,7 @@ async function setLockScreenWallpaperSilently(imagePath) {
   if (!elevated) {
     return {
       applied: false,
-      reason: "锁屏已跳过"
+      reason: "当前不是管理员模式，已跳过锁屏设置。"
     };
   }
 
@@ -82,7 +83,7 @@ async function setLockScreenWallpaperSilently(imagePath) {
   } catch {
     return {
       applied: false,
-      reason: "锁屏设置受系统限制"
+      reason: "锁屏设置受系统限制，已跳过。"
     };
   }
 }
@@ -94,6 +95,7 @@ async function getWindowsProductName() {
       "-Command",
       "(Get-ComputerInfo -Property WindowsProductName).WindowsProductName"
     ]);
+
     return stdout.trim();
   } catch {
     return "Windows";
